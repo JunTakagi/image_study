@@ -95,6 +95,34 @@ public class ImageStudy {
     yFourierTransform(true);
   }
 
+  // low-pass filter
+  public void lowPassFilter(int k) {
+    for (int y = 0; y < _height; ++y) {
+      int xmin = (int)Math.ceil(Math.sqrt(k*k - y*y));
+      int xmax = _width - xmin;
+      for (int x = xmin; x < xmax; ++x) {
+        setFloat(ft_real, x, y, 0.0f);
+        setFloat(ft_img, x, y, 0.0f);
+      }
+    }
+  }
+
+  // output spectors
+  public void outputSpectrum(String filename) {
+    float[] spectrums = new float[_height * _width];
+    for (int y = 0; y < _height; ++y) {
+      for (int x = 0; x < _width; ++x) {
+        float real = getFloat(ft_real, x, y);
+        float img = getFloat(ft_img, x, y);
+        float spectrum = (float)Math.sqrt(real * real + img * img) / 2.0f;
+        spectrum = (spectrum > 1.0f)? 256:(spectrum * 256);
+        setFloat(spectrums, x, y, spectrum);
+      }
+      System.out.println();
+    }
+    writeWorkingCopy(spectrums, filename);
+  }
+
   // x-direction Fourier Transform
   public void xFourierTransform(boolean inverse) {
     float inv_factor = (inverse)? 1.0f:-1.0f;
@@ -308,6 +336,10 @@ public class ImageStudy {
     //is.writeWorkingCopy(args[1]);
 
     is.fourierTransform();
+    //is.lowPassFilter(20);
+    if (args.length >= 3) {
+      is.outputSpectrum(args[2]);
+    }
     is.inverseFourierTransform();
     //is.yDirectionTest();
     is.outputFourierReal(args[1]);
